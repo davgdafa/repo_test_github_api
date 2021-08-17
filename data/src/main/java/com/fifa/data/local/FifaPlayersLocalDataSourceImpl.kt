@@ -10,6 +10,6 @@ class FifaPlayersLocalDataSourceImpl : FifaPlayersLocalDataSource {
 
     override suspend fun getFifaPlayerDetails(playerId: Int): FifaPlayer {
         // todo update using current player
-        return FifaPlayer("", "", "", 0, "", "", "", "", "")
+        return FifaPlayer(0, "", "", "", 0, "", 0, 0, 0, "", "", "")
     }
 }
