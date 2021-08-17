@@ -4,10 +4,12 @@
 
     <application>
         <activity
-            android:name=".MainActivity"
+            android:name=".characters.CharactersActivity"
             android:exported="true"
             android:label="@string/title_activity_main"
-            android:theme="@style/Theme.GotCharactersApp.NoActionBar" />
+            android:theme="@style/Theme.GotCharactersApp" />
+        <activity android:name=".character.CharacterDetailsActivity"
+            android:theme="@style/Theme.GotCharactersApp"
+            android:label="@string/title_activity_details"/>
     </application>
-
 </manifest>

@@ -11,8 +11,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.GotCharactersApp"
-        android:name=".GotPlayersApplication">
-        <activity android:name="com.got.presentation.MainActivity">
+        android:name=".GotCharactersApplication">
+        <activity android:name="com.got.presentation.characters.CharactersActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

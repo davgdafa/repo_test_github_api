@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Got Characters App</string>
+    <string name="title_activity_main">Game Of Thrones Characters</string>
+    <string name="title_activity_details">Character Details</string>
+</resources>
