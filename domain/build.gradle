@@ -8,5 +8,5 @@ java {
 }
 
 dependencies {
-    implementation "org.koin:koin-android:2.1.3"
+    implementation Libs.koin_android
 }
