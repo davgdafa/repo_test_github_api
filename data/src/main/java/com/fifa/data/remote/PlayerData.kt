@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PlayerData(
-    val commonName: String?,
+    val name: String?,
     val league: LeagueData?,
     val nation: NationData?,
     val club: ClubData?,
