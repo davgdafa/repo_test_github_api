@@ -1,98 +1,69 @@
 package com.got.presentation
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
+import android.view.View
+import android.widget.ProgressBar
 import androidx.activity.viewModels
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.got.presentation.ui.theme.GotCharactersAppTheme
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
+import com.got.presentation.databinding.ActivityMainBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 
 @ExperimentalCoroutinesApi
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityMainBinding
     private val viewModel: PlayersViewModel by viewModels()
+    private val loader: ProgressBar get() = binding.pbLoadingBar
 
-    @InternalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            MyApp {
-                MyScreenContent {
-                    viewModel.getGotPlayers()
-                }
-            }
-        }
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setFunctionality()
         lifecycleScope.launchWhenStarted {
             viewModel.gotPlayersUiState.collect { gotPlayersUiState ->
-                when(gotPlayersUiState) {
+                when (gotPlayersUiState) {
                     is PlayersViewModel.PlayersUiState.Success -> {
-                        // todo update ui with got players
+                        binding.rvPlayersList.adapter = PlayersAdapter(gotPlayersUiState.players)
+                        loader.hide()
                     }
                     is PlayersViewModel.PlayersUiState.Error -> {
-                        // todo show api error
+                        loader.hide()
+                        Snackbar.make(binding.root, gotPlayersUiState.message, Snackbar.LENGTH_LONG).show()
                     }
                     is PlayersViewModel.PlayersUiState.Loading -> {
-                        // todo show loader
+                        loader.show()
+                        Snackbar.make(binding.root, "Loading players", Snackbar.LENGTH_LONG).show()
                     }
                     else -> Unit
                 }
             }
         }
     }
-}
 
-@Composable
-fun MyApp(content: @Composable () -> Unit) {
-    GotCharactersAppTheme {
-        // A surface container using the 'background' color from the theme
-        Surface(color = MaterialTheme.colors.background) {
-            content()
+    override fun onResume() {
+        super.onResume()
+        viewModel.getGotPlayers()
+    }
+
+    private fun setFunctionality() {
+        binding.rvPlayersList.apply {
+            val layoutManagerVariable = LinearLayoutManager(applicationContext)
+            layoutManager = layoutManagerVariable
+            itemAnimator = DefaultItemAnimator().apply { supportsChangeAnimations = false }
+            setItemViewCacheSize(20)
         }
     }
-}
 
-@Composable
-fun MyScreenContent(onClickAction: () -> Unit) {
-    GetGotPlayersButton(onClickAction)
-}
-
-@Composable
-fun GetGotPlayersButton(onClickAction: () -> Unit) {
-    Button(onClick = onClickAction) {
-        Text(text = "Get Got Players")
+    private fun ProgressBar.show() {
+        visibility = View.VISIBLE
     }
-}
 
-@Composable
-fun showLoader() {
-    CircularProgressIndicator()
-}
-
-@Composable
-fun hideLoader() {
-    CircularProgressIndicator()
-}
-
-@Composable
-fun GetPlayersButton(buttonAction: () -> Unit) {
-    Button(
-        onClick = buttonAction
-    ) {}
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    MyApp {
-        MyScreenContent {}
+    private fun ProgressBar.hide() {
+        visibility = View.GONE
     }
 }
