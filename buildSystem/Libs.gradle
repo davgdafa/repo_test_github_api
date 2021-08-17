@@ -1,0 +1,10 @@
+apply from: 'buildSystem/Versions.gradle'
+
+ext {
+    Libs = [
+            androidx_core_kotlin: "androidx.core:core-ktx:${Versions.androidx_core_kotlin_version}",
+            androidx_appcompat  : "androidx.appcompat:appcompat:${Versions.androidx_appcompat_version}",
+            google_material     : "com.google.android.material:material:${Versions.google_material_version}",
+            junit               : "junit:junit:${Versions.junit_version}"
+    ]
+}
