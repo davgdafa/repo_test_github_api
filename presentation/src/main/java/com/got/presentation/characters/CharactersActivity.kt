@@ -3,8 +3,8 @@ package com.got.presentation.characters
 import android.os.Bundle
 import android.view.View
 import android.widget.ProgressBar
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -12,12 +12,12 @@ import com.google.android.material.snackbar.Snackbar
 import com.got.presentation.character.CharacterDetailsActivity
 import com.got.presentation.databinding.ActivityCharactersBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 @ExperimentalCoroutinesApi
 class CharactersActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCharactersBinding
-    private val viewModel: CharactersViewModel by viewModels()
+    private val viewModel: CharactersViewModel by viewModel()
     private val loader: ProgressBar get() = binding.pbLoadingBar
     private var isFavoritesFiltersOn: Boolean = false
 
@@ -33,15 +33,16 @@ class CharactersActivity : AppCompatActivity() {
                         hideEmptyListLayout()
                         binding.rvCharactersList.adapter =
                             CharactersAdapter(gotCharactersUiState.characters, ::launchGotCharacterDetailsActivity)
-                        loader.hide()
+                        loader.hide().also { binding.tvLoadingText.visibility = View.GONE }
                     }
                     is CharactersViewModel.CharactersUiState.Error -> {
                         showEmptyListLayout()
-                        loader.hide()
+                        loader.hide().also { binding.tvLoadingText.visibility = View.GONE }
                         Snackbar.make(binding.root, gotCharactersUiState.message, Snackbar.LENGTH_SHORT).show()
                     }
                     is CharactersViewModel.CharactersUiState.Loading -> {
-                        loader.show()
+                        hideEmptyListLayout()
+                        loader.show().also { binding.tvLoadingText.visibility = View.VISIBLE }
                     }
                     else -> Unit
                 }
@@ -77,14 +78,14 @@ class CharactersActivity : AppCompatActivity() {
         binding.btnRetry.setOnClickListener {
             viewModel.getGotCharacters()
         }
-        binding.svSearchBar.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+        binding.svSearchBar.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                query?.let { viewModel.searchCharacters(query) }
+                query?.takeIf { it.isNotBlank() }?.let { viewModel.searchCharacters(query) }
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                newText?.let { viewModel.searchCharacters(newText) }
+                newText?.takeIf { it.isNotBlank() }?.let { viewModel.searchCharacters(newText) }
                 return true
             }
         })

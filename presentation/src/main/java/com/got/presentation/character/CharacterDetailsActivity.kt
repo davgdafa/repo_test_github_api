@@ -21,11 +21,12 @@ import com.got.presentation.utils.ARGUMENT_GOT_CHARACTER_ID
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 @ExperimentalCoroutinesApi
 class CharacterDetailsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCharacterDetailsBinding
-    private val viewModel: CharacterDetailsViewModel by viewModels()
+    private val viewModel: CharacterDetailsViewModel by viewModel()
     private val loader: ProgressBar get() = binding.pbLoadingPlaceholder
     private var gotCharacterId: Int = 0
     private lateinit var currentGotCharacter: GotCharacter

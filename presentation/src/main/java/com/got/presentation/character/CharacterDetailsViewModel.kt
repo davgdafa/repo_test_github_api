@@ -21,9 +21,10 @@ import org.koin.java.KoinJavaComponent
 import org.koin.java.KoinJavaComponent.inject
 
 @ExperimentalCoroutinesApi
-class CharacterDetailsViewModel: ViewModel() {
-    private val getGotCharacterDetailsUseCase by inject(GetGotCharacterDetailsUseCase::class.java)
-    private val setBookmarkForCharacterUseCase by inject(SetBookmarkForCharacterUseCase::class.java)
+class CharacterDetailsViewModel(
+    private val getGotCharacterDetailsUseCase: GetGotCharacterDetailsUseCase,
+    private val setBookmarkForCharacterUseCase: SetBookmarkForCharacterUseCase,
+): ViewModel() {
     private val _gotCharacterDetailUiState = MutableStateFlow<CharacterUiState>(CharacterUiState.Empty)
     val gotCharacterDetailUiState: StateFlow<CharacterUiState> = _gotCharacterDetailUiState
 

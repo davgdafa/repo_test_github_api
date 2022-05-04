@@ -5,20 +5,16 @@ import androidx.lifecycle.viewModelScope
 import com.got.domain.models.GotCharacter
 import com.got.domain.usecases.GetGotCharactersUseCase
 import com.got.domain.usecases.SearchCharactersUseCase
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 
 @ExperimentalCoroutinesApi
-class CharactersViewModel : ViewModel() {
-    private val getGotCharactersUseCase by inject(GetGotCharactersUseCase::class.java)
-    private val searchCharactersUseCase by inject(SearchCharactersUseCase::class.java)
-
+class CharactersViewModel(
+    private val getGotCharactersUseCase: GetGotCharactersUseCase,
+    private val searchCharactersUseCase: SearchCharactersUseCase
+) : ViewModel() {
     private val _gotCharactersUiState = MutableStateFlow<CharactersUiState>(CharactersUiState.Empty)
     val gotCharactersUiState: StateFlow<CharactersUiState> = _gotCharactersUiState
 
@@ -28,13 +24,15 @@ class CharactersViewModel : ViewModel() {
 
     fun getGotCharacters(setFilterOn: Boolean = false) = viewModelScope.launch(errorHandler) {
         _gotCharactersUiState.value = CharactersUiState.Loading
+        delay(5000)
         withContext(Dispatchers.IO) {
             getGotCharactersUseCase().let { listOfCharacters ->
                 if (listOfCharacters.isEmpty()) {
-                    _gotCharactersUiState.value = CharactersUiState.Error("There were no characters retrieved")
+//                    _gotCharactersUiState.value = CharactersUiState.Error("There were no characters retrieved") // TODO should show a text in the layout, not a message
                 } else {
                     if (setFilterOn) {
-                        _gotCharactersUiState.value = CharactersUiState.Success(listOfCharacters.filter { gotCharacter -> gotCharacter.isFavorite == true })
+                        _gotCharactersUiState.value =
+                            CharactersUiState.Success(listOfCharacters.filter { gotCharacter -> gotCharacter.isFavorite == true })
                     } else {
                         _gotCharactersUiState.value = CharactersUiState.Success(listOfCharacters)
                     }
