@@ -4,23 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.got.domain.models.GotCharacter
 import com.got.domain.usecases.GetGotCharacterDetailsUseCase
-import com.got.domain.usecases.SearchCharactersUseCase
 import com.got.domain.usecases.SetBookmarkForCharacterUseCase
-import com.got.presentation.characters.CharactersViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.java.KoinJavaComponent
-import org.koin.java.KoinJavaComponent.inject
 
-@ExperimentalCoroutinesApi
 class CharacterDetailsViewModel(
     private val getGotCharacterDetailsUseCase: GetGotCharacterDetailsUseCase,
     private val setBookmarkForCharacterUseCase: SetBookmarkForCharacterUseCase,

@@ -7,14 +7,12 @@ import com.got.domain.usecases.GetGotCharactersUseCase
 import com.got.domain.usecases.SearchCharactersUseCase
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@ExperimentalCoroutinesApi
 class CharactersViewModel(
     private val getGotCharactersUseCase: GetGotCharactersUseCase,
     private val searchCharactersUseCase: SearchCharactersUseCase

@@ -11,10 +11,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.got.presentation.character.CharacterDetailsActivity
 import com.got.presentation.databinding.ActivityCharactersBinding
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@ExperimentalCoroutinesApi
 class CharactersActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCharactersBinding
     private val viewModel: CharactersViewModel by viewModel()

@@ -6,7 +6,6 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.View
 import android.widget.ProgressBar
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
@@ -18,12 +17,8 @@ import com.google.android.material.snackbar.Snackbar
 import com.got.domain.models.GotCharacter
 import com.got.presentation.databinding.ActivityCharacterDetailsBinding
 import com.got.presentation.utils.ARGUMENT_GOT_CHARACTER_ID
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@ExperimentalCoroutinesApi
 class CharacterDetailsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCharacterDetailsBinding
     private val viewModel: CharacterDetailsViewModel by viewModel()
