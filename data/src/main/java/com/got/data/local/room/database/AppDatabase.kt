@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import com.got.data.local.room.dao.GotCharacterDao
 import com.got.data.local.room.entities.GotCharacterEntity
 
-@Database(entities = [GotCharacterEntity::class], version = 1)
+@Database(entities = [GotCharacterEntity::class], version = 1, exportSchema = false)
 abstract class AppDatabase: RoomDatabase() {
     abstract fun gotCharacterDao(): GotCharacterDao
 }
