@@ -36,8 +36,6 @@ dependencies {
             Libs.coroutines_ktx,
             Libs.coroutines_ktx_android,
             Libs.koin_android,
-            Libs.koin_androidx_viewmodel,
-            Libs.koin_android_viewmodel,
             Libs.glide
     testImplementation(Libs.junit)
 }
