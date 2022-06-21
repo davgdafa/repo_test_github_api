@@ -7,5 +7,5 @@ interface GotCharactersLocalDataSource {
     suspend fun getGotCharacterDetails(characterId: Int): GotCharacter
     suspend fun searchGotCharacters(query: String): List<GotCharacter>
     suspend fun storeGotCharacters(gotCharacters: List<GotCharacter>)
-    suspend fun setBookmark(id: Int, isFavorite: Boolean)
+    suspend fun setBookmark(id: Int, isFavorite: Boolean): Boolean
 }

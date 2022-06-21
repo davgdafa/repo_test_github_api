@@ -26,7 +26,6 @@ internal class GotCharactersRepositoryImpl(
         return locally.searchGotCharacters(query)
     }
 
-    override suspend fun setBookmark(id: Int, isFavorite: Boolean)  {
+    override suspend fun setBookmark(id: Int, isFavorite: Boolean): Boolean =
         locally.setBookmark(id, isFavorite)
-    }
 }

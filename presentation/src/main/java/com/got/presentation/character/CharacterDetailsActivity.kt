@@ -110,7 +110,6 @@ class CharacterDetailsActivity : AppCompatActivity() {
     private fun setFunctionality() {
         binding.btnBookmark.setOnClickListener {
             viewModel.setBookmark(currentGotCharacter.id, isFavorite = !isFavorite)
-            viewModel.getGotCharacterDetails(currentGotCharacter.id)
         }
     }
 

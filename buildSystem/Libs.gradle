@@ -26,6 +26,7 @@ ext {
             kotlinx_serialization_json: "org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.kotlinx_serialization_json_version}",
             logging_interceptor       : "com.squareup.okhttp3:logging-interceptor:${Versions.logging_interceptor_version}",
             room_runtime              : "androidx.room:room-runtime:${Versions.room_runtime_version}",
-            room_compiler             : "androidx.room:room-compiler:${Versions.room_runtime_version}"
+            room_compiler             : "androidx.room:room-compiler:${Versions.room_runtime_version}",
+            coil                      : "io.coil-kt:coil-compose:${Versions.coil_version}"
     ]
 }

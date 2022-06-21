@@ -4,17 +4,18 @@ plugins {
 }
 
 android {
-    compileSdk 31
+    compileSdk 32
 
     defaultConfig {
         minSdk 23
-        targetSdk 31
+        targetSdk 32
         vectorDrawables {
             useSupportLibrary true
         }
     }
     buildFeatures {
         viewBinding true
+        compose true
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
@@ -23,6 +24,15 @@ android {
     kotlinOptions {
         jvmTarget = '11'
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion Versions.compose_version
+    }
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+    namespace 'com.got.presentation'
 }
 
 dependencies {
@@ -36,6 +46,11 @@ dependencies {
             Libs.coroutines_ktx,
             Libs.coroutines_ktx_android,
             Libs.koin_android,
-            Libs.glide
-    testImplementation(Libs.junit)
+            Libs.glide,
+            Libs.coil
+    implementation Libs.compose_ui
+    implementation Libs.compose_material
+
+    implementation Libs.compose_activity
+    debugImplementation Libs.compose_ui_tooling
 }

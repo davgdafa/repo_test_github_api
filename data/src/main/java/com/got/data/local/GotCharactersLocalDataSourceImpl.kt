@@ -64,7 +64,11 @@ class GotCharactersLocalDataSourceImpl(private val database: GotCharacterDao) : 
         })
     }
 
-    override suspend fun setBookmark(id: Int, isFavorite: Boolean) {
-        database.updateCharacterById(id, isFavorite)
-    }
+    override suspend fun setBookmark(id: Int, isFavorite: Boolean): Boolean =
+        try {
+            database.updateCharacterById(id, isFavorite)
+            true
+        } catch (error: java.lang.Exception) {
+            false
+        }
 }

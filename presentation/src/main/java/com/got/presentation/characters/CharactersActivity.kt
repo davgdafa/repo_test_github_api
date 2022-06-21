@@ -63,7 +63,7 @@ class CharactersActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         binding.svSearchBar.setQuery("", false)
-        viewModel.getGotCharacters()
+        viewModel.actionPerformed(CharactersUiAction.GetCharacters)
     }
 
     private fun setFunctionality() {
@@ -74,21 +74,21 @@ class CharactersActivity : AppCompatActivity() {
             setItemViewCacheSize(20)
         }
         binding.btnRetry.setOnClickListener {
-            viewModel.getGotCharacters()
+            viewModel.actionPerformed(CharactersUiAction.GetCharacters)
         }
         binding.svSearchBar.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                query?.takeIf { it.isNotBlank() }?.let { viewModel.searchCharacters(query) }
+                query?.takeIf { it.isNotBlank() }?.let { viewModel.actionPerformed(CharactersUiAction.Filter(query)) }
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                newText?.takeIf { it.isNotBlank() }?.let { viewModel.searchCharacters(newText) }
+                newText?.takeIf { it.isNotBlank() }?.let { viewModel.actionPerformed(CharactersUiAction.Filter(newText)) }
                 return true
             }
         })
         binding.ivFilter.setOnClickListener {
-            viewModel.getGotCharacters(!isFavoritesFiltersOn)
+            viewModel.actionPerformed(CharactersUiAction.Filter("", !isFavoritesFiltersOn))
             isFavoritesFiltersOn = !isFavoritesFiltersOn
             if (isFavoritesFiltersOn) {
                 Snackbar.make(binding.root, "Favorites filter on", Snackbar.LENGTH_SHORT).show()
