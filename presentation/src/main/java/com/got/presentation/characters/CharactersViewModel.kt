@@ -2,7 +2,6 @@ package com.got.presentation.characters
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.got.domain.models.GotCharacter
 import com.got.domain.usecases.GetGotCharactersUseCase
 import com.got.domain.usecases.SearchCharactersUseCase
 import com.got.domain.usecases.SetBookmarkForCharacterUseCase
@@ -21,26 +20,22 @@ class CharactersViewModel(
     private val searchCharactersUseCase: SearchCharactersUseCase,
     private val setBookmarkForCharacterUseCase: SetBookmarkForCharacterUseCase,
 ) : ViewModel() {
-    private val _gotCharactersUiState = MutableStateFlow<CharactersUiState>(CharactersUiState.Empty)
-    val gotCharactersUiState: StateFlow<CharactersUiState> = _gotCharactersUiState.asStateFlow()
+    private val _gotCharactersListUiState = MutableStateFlow(CharactersListUiState())
+    val gotCharactersListUiState: StateFlow<CharactersListUiState> = _gotCharactersListUiState.asStateFlow()
 
     private val errorHandler = CoroutineExceptionHandler { _, exception ->
-        _gotCharactersUiState.update {
-            CharactersUiState.Error(
-                exception.message ?: "There was an unknown error during the process"
-            )
-        }
+        _gotCharactersListUiState.update { it.copy(errorMessage = exception.message ?: "There was an unknown error during the process") }
     }
 
     private fun fetchGotCharacters() = viewModelScope.launch(errorHandler) {
-        _gotCharactersUiState.value = CharactersUiState.Loading
+        _gotCharactersListUiState.update { it.copy(shouldShowLoading = true) }
         delay(2000)
         withContext(Dispatchers.IO) {
             getGotCharactersUseCase().let { listOfCharacters ->
                 if (listOfCharacters.isEmpty()) {
-                    _gotCharactersUiState.update { CharactersUiState.Error("There were no characters retrieved") } // TODO should show a text in the layout, not a message
+                    _gotCharactersListUiState.update { it.copy(errorMessage = "There were no characters retrieved") } // TODO should show a text in the layout, not a message
                 } else {
-                    _gotCharactersUiState.update { CharactersUiState.Success(listOfCharacters) }
+                    _gotCharactersListUiState.update { it.copy(characters = listOfCharacters) }
                 }
             }
         }
@@ -48,7 +43,7 @@ class CharactersViewModel(
 
     private fun filterGotCharacters(query: String, isBookmarkFilterOn: Boolean = false) {
         viewModelScope.launch(errorHandler) {
-            _gotCharactersUiState.update { CharactersUiState.Loading }
+            _gotCharactersListUiState.update { it.copy(shouldShowLoading = true) }
             withContext(Dispatchers.IO) {
                 if (query.isNotBlank()) {
                     searchCharactersUseCase(query)
@@ -56,18 +51,12 @@ class CharactersViewModel(
                     getGotCharactersUseCase()
                 }.let { listOfCharacters ->
                     if (listOfCharacters.isEmpty()) {
-                    _gotCharactersUiState.update {
-                        CharactersUiState.Error("There were no characters matching the filter criteria")
-                    }
+                        _gotCharactersListUiState.update { it.copy(errorMessage = "There were no characters matching the filter criteria") }
                     } else {
                         if (isBookmarkFilterOn) {
-                            _gotCharactersUiState.update {
-                                CharactersUiState.Success(listOfCharacters.filter { gotCharacter -> gotCharacter.isFavorite == true })
-                            }
+                            _gotCharactersListUiState.update { it.copy(characters = listOfCharacters.filter { gotCharacter -> gotCharacter.isFavorite == true }) }
                         } else {
-                            _gotCharactersUiState.update {
-                                CharactersUiState.Success(listOfCharacters)
-                            }
+                            _gotCharactersListUiState.update { it.copy(characters = listOfCharacters) }
                         }
                     }
                 }
@@ -82,34 +71,34 @@ class CharactersViewModel(
             }
         }
 
-    fun actionPerformed(action: CharactersUiAction) {
+    fun charactersListAction(action: CharactersListUiAction) {
         when (action) {
-            is CharactersUiAction.Filter -> filterGotCharacters(
+            is CharactersListUiAction.Filter -> filterGotCharacters(
                 action.query,
                 action.isBookmarkFilterOn
             )
-            CharactersUiAction.GetCharacters -> fetchGotCharacters()
-            is CharactersUiAction.SetFavoriteGotCharacter -> setFavoriteForGotCharacter(
+            CharactersListUiAction.GetCharactersList -> fetchGotCharacters()
+            is CharactersListUiAction.SetFavoriteGotCharacter -> setFavoriteForGotCharacter(
+                action.gotCharacterId,
+                action.isFavorite
+            )
+            is CharactersListUiAction.CharacterClicked -> _gotCharactersListUiState.update { it.copy(showCharacterDetails = action.characterId) }
+            is CharactersListUiAction.OnBackPressed -> {
+                if (_gotCharactersListUiState.value.showCharacterDetails != null) {
+                    _gotCharactersListUiState.update { it.copy(showCharacterDetails = null) }
+                } else {
+                    _gotCharactersListUiState.update { it.copy(goBackToPreviousActivity = true) }
+                }
+            }
+        }
+    }
+
+    fun characterDetailsAction(action: CharacterDetailsUiAction) {
+        when (action) {
+            is CharacterDetailsUiAction.SetFavoriteGotCharacter -> setFavoriteForGotCharacter(
                 action.gotCharacterId,
                 action.isFavorite
             )
         }
     }
-
-
-    sealed class CharactersUiState {
-        data class Success(val characters: List<GotCharacter>) : CharactersUiState()
-        data class Error(val message: String) : CharactersUiState()
-        object Loading : CharactersUiState()
-        object Empty : CharactersUiState()
-    }
-}
-
-sealed class CharactersUiAction {
-    class Filter(val query: String, val isBookmarkFilterOn: Boolean = false) : CharactersUiAction()
-    object GetCharacters : CharactersUiAction()
-    class SetFavoriteGotCharacter(
-        val gotCharacterId: Int,
-        val isFavorite: Boolean = true
-    ) : CharactersUiAction()
 }

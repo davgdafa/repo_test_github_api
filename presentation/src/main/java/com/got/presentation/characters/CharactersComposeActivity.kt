@@ -42,11 +42,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.got.domain.models.GotCharacter
 import com.got.presentation.R
-import com.got.presentation.character.CharacterDetailsActivity
 import com.got.presentation.characters.ui.theme.GotCharactersAppTheme
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -56,47 +56,59 @@ class CharactersComposeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val state = viewModel.gotCharactersListUiState.collectAsState().value
+            val action = viewModel::charactersListAction
+
+            if (state.goBackToPreviousActivity) {
+                super.onBackPressed()
+                return@setContent
+            }
+
             GotCharactersAppTheme {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    SearchBarStateful(viewModel::actionPerformed)
-                    CharactersViewStateful()
-                }
+                GotCharacterApp(state = state, action)
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        viewModel.actionPerformed(CharactersUiAction.GetCharacters)
+        viewModel.charactersListAction(CharactersListUiAction.GetCharactersList)
+    }
+
+    override fun onBackPressed() {
+        viewModel.charactersListAction(CharactersListUiAction.OnBackPressed)
     }
 
     @Composable
-    fun CharactersViewStateful() {
-        when (val gotCharacterUiState = viewModel.gotCharactersUiState.collectAsState().value) {
-            is CharactersViewModel.CharactersUiState.Success -> {
-                val gotCharacters by remember {
-                    mutableStateOf(gotCharacterUiState.characters)
-                }
-                CharactersListView(characters = gotCharacters)
+    private fun GotCharacterApp(state: CharactersListUiState, action: (CharactersListUiAction) -> Unit) {
+        if (state.showCharacterDetails != null && state.characters.isNotEmpty()) {
+            GotCharacterDetails(character = state.characters[state.showCharacterDetails], height = 500.dp)
+        } else {
+            GotCharactersListScreen(state, action)
+        }
+    }
+
+    @Composable
+    private fun GotCharactersListScreen(state: CharactersListUiState, action: (CharactersListUiAction) -> Unit) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            SearchBarStateful(state, action)
+            CharactersViewStateful(state, action)
+        }
+    }
+
+    @Composable
+    private fun GotCharacterDetailsScreen(state: CharactersListUiState, action: (CharacterDetailsUiAction) -> Unit) {
+        GotCharactersAppTheme {
+            Column(modifier = Modifier.fillMaxSize()) {
+                GotCharacterDetails(state.characters[state.showCharacterDetails!!]) // TODO should not be passed as null
             }
-            is CharactersViewModel.CharactersUiState.Error -> {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Button(onClick = { viewModel.actionPerformed(CharactersUiAction.GetCharacters) }) {
-                        Text(text = "Try again")
-                    }
-                    Text(
-                        text = "Game Of Thrones characters will show up here",
-                        modifier = Modifier
-                            .padding(top = 8.dp)
-                            .fillMaxSize()
-                            .align(alignment = Alignment.CenterHorizontally),
-                    )
-                }
-            }
-            is CharactersViewModel.CharactersUiState.Loading -> {
+        }
+    }
+
+    @Composable
+    fun CharactersViewStateful(state: CharactersListUiState, action: (CharactersListUiAction) -> Unit) {
+        when {
+            state.shouldShowLoading -> {
                 Column(
                     modifier = Modifier
                         .fillMaxSize(),
@@ -110,26 +122,49 @@ class CharactersComposeActivity : ComponentActivity() {
                     Text(text = stringResource(R.string.characters_loading_text))
                 }
             }
-            else -> Unit
+            state.characters.isNotEmpty() -> {
+                val gotCharacters by remember {
+                    mutableStateOf(state.characters)
+                }
+                CharactersListView(characters = gotCharacters, action)
+            }
+            !state.errorMessage.isNullOrBlank() -> {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Button(onClick = { action(CharactersListUiAction.GetCharactersList) }) {
+                        Text(text = "Try again")
+                    }
+                    Text(
+                        text = "Game Of Thrones characters will show up here",
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .fillMaxSize()
+                            .align(alignment = Alignment.CenterHorizontally),
+                    )
+                }
+            }
+            else -> {}
         }
     }
 
     @Composable
-    fun CharactersListView(characters: List<GotCharacter>) {
+    fun CharactersListView(characters: List<GotCharacter>, action: (CharactersListUiAction) -> Unit) {
         LazyColumn {
             items(items = characters, key = { character -> character.id }) {
-                CharacterRow(it)
+                CharacterRow(it, action)
             }
         }
     }
 
     @Composable
-    fun SearchBarStateful(actionPerformed: (CharactersUiAction) -> Unit) {
+    fun SearchBarStateful(state: CharactersListUiState, action: (CharactersListUiAction) -> Unit) {
         var isFavoritesFiltersOn by remember { mutableStateOf(false) }
         var queryValue by remember { mutableStateOf("") }
 
         SearchBar(
-            actionPerformed = actionPerformed,
+            actionPerformed = action,
             isFavoritesFiltersOn = isFavoritesFiltersOn,
             { isFavoritesFiltersOn = it },
             queryValue = queryValue,
@@ -139,7 +174,7 @@ class CharactersComposeActivity : ComponentActivity() {
 
     @Composable
     fun SearchBar(
-        actionPerformed: (CharactersUiAction) -> Unit,
+        actionPerformed: (CharactersListUiAction) -> Unit,
         isFavoritesFiltersOn: Boolean,
         updateFavoritesFiltersOn: (Boolean) -> Unit,
         queryValue: String,
@@ -154,9 +189,7 @@ class CharactersComposeActivity : ComponentActivity() {
                 maxLines = 1,
                 onValueChange = {
                     if (it.length > 3) {
-                        actionPerformed(CharactersUiAction.Filter(queryValue, isFavoritesFiltersOn))
-                    } else if (it.isBlank()) {
-                        actionPerformed(CharactersUiAction.Filter(it, isFavoritesFiltersOn))
+                        actionPerformed(CharactersListUiAction.Filter(queryValue, isFavoritesFiltersOn))
                     }
                     updateQueryValue(it)
                 },
@@ -166,7 +199,7 @@ class CharactersComposeActivity : ComponentActivity() {
                         modifier = Modifier.clickable {
                             updateFavoritesFiltersOn(!isFavoritesFiltersOn)
                             actionPerformed(
-                                CharactersUiAction.Filter(
+                                CharactersListUiAction.Filter(
                                     queryValue,
                                     !isFavoritesFiltersOn
                                 )
@@ -183,114 +216,117 @@ class CharactersComposeActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
-    fun CharacterRow(character: GotCharacter) {
+    fun CharacterRow(character: GotCharacter, action: (CharactersListUiAction) -> Unit) {
         Card(
             elevation = 6.dp,
             shape = RoundedCornerShape(8.dp),
             modifier = Modifier.padding(8.dp),
-            onClick = { launchGotCharacterDetailsActivity(character.id) }
+            onClick = { action(CharactersListUiAction.CharacterClicked(character.id)) }
         ) {
-            Column {
-                Row {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .requiredHeight(300.dp)
-                    ) {
-                        AsyncImage(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            model = character.imageUrl,
-                            contentScale = ContentScale.FillWidth,
-                            contentDescription = "Contact profile picture",
-                            placeholder = painterResource(R.drawable.ic_favorite)
-                        )
-                        if (character.isFavorite == true) {
-                            Icon(
-                                modifier = Modifier
-                                    .requiredSize(45.dp)
-                                    .align(Alignment.TopEnd),
-                                painter = painterResource(R.drawable.ic_favorite),
-                                tint = Color.Red,
-                                contentDescription = null
-                            )
-                        }
-                    }
-                }
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text(text = "First name", fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.requiredHeight(8.dp))
-                        Text(text = "Last name", fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.requiredHeight(8.dp))
-                        Text(text = "Full name", fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.requiredHeight(8.dp))
-                        Text(text = "Title", fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.requiredHeight(8.dp))
-                        Text(text = "Family", fontWeight = FontWeight.Bold)
-                    }
-
-                    Column(
-                        Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth()
-                    ) {
-                        Text(text = character.firstName)
-                        Spacer(modifier = Modifier.requiredHeight(8.dp))
-                        Text(text = character.lastName)
-                        Spacer(modifier = Modifier.requiredHeight(8.dp))
-                        Text(text = character.fullName)
-                        Spacer(modifier = Modifier.requiredHeight(8.dp))
-                        Text(text = character.title)
-                        Spacer(modifier = Modifier.requiredHeight(8.dp))
-                        Text(text = character.family)
-                    }
-                }
-            }
+            GotCharacterDetails(character)
         }
     }
 
-    private fun launchGotCharacterDetailsActivity(gotCharacterId: Int) {
-        startActivity(
-            CharacterDetailsActivity.getIntent(
-                this@CharactersComposeActivity,
-                gotCharacterId
-            )
-        )
+    @Composable
+    private fun GotCharacterDetails(character: GotCharacter, height: Dp = 300.dp) {
+        Column {
+            Row {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .requiredHeight(height)
+                ) {
+                    AsyncImage(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        model = character.imageUrl,
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.Center,
+                        contentDescription = "Contact profile picture",
+                        placeholder = painterResource(R.drawable.ic_filter)
+                    )
+                    if (character.isFavorite == true) {
+                        Icon(
+                            modifier = Modifier
+                                .requiredSize(45.dp)
+                                .align(Alignment.TopEnd),
+                            painter = painterResource(R.drawable.ic_favorite),
+                            tint = Color.Red,
+                            contentDescription = null
+                        )
+                    }
+                }
+            }
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(text = "First name", fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.requiredHeight(8.dp))
+                    Text(text = "Last name", fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.requiredHeight(8.dp))
+                    Text(text = "Full name", fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.requiredHeight(8.dp))
+                    Text(text = "Title", fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.requiredHeight(8.dp))
+                    Text(text = "Family", fontWeight = FontWeight.Bold)
+                }
+
+                Column(
+                    Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                ) {
+                    Text(text = character.firstName)
+                    Spacer(modifier = Modifier.requiredHeight(8.dp))
+                    Text(text = character.lastName)
+                    Spacer(modifier = Modifier.requiredHeight(8.dp))
+                    Text(text = character.fullName)
+                    Spacer(modifier = Modifier.requiredHeight(8.dp))
+                    Text(text = character.title)
+                    Spacer(modifier = Modifier.requiredHeight(8.dp))
+                    Text(text = character.family)
+                }
+            }
+        }
     }
 
     @Preview
     @Composable
-    fun DefaultPreview() {
-        GotCharactersAppTheme {
-            val character1 = GotCharacter(
-                12321,
-                "first",
-                "last",
-                "first and last",
-                "title",
-                "family",
-                imageUrl = "no image"
-            )
-            val character2 = GotCharacter(
-                123212,
-                "first2",
-                "last2",
-                "first and last2",
-                "title2",
-                "family2",
-                imageUrl = "no image2"
-            )
-            Column(modifier = Modifier.fillMaxWidth()) {
-                SearchBar(
-                    actionPerformed = {},
-                    isFavoritesFiltersOn = true,
-                    updateFavoritesFiltersOn = {},
-                    queryValue = "Targaryen",
-                    updateQueryValue = {}
-                )
-                CharactersListView(characters = listOf(character1, character2))
-            }
-        }
+    fun PreviewCharactersListScreen() {
+        val character1 = GotCharacter(
+            12321,
+            "first",
+            "last",
+            "first and last",
+            "title",
+            "family",
+            imageUrl = "no image"
+        )
+        val character2 = GotCharacter(
+            123212,
+            "first2",
+            "last2",
+            "first and last2",
+            "title2",
+            "family2",
+            imageUrl = "no image2"
+        )
+
+        GotCharactersListScreen(CharactersListUiState(characters = listOf(character1, character2)), {})
     }
+
+    @Preview
+    @Composable
+    private fun CharacterDetailsScreen() {
+        val character1 = GotCharacter(
+            12321,
+            "first",
+            "last",
+            "first and last",
+            "title",
+            "family",
+            imageUrl = "no image"
+        )
+        GotCharacterDetailsScreen(CharactersListUiState(characters = listOf(character1), showCharacterDetails = 0)) {}
+    }
+
 }

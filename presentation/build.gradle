@@ -14,7 +14,6 @@ android {
         }
     }
     buildFeatures {
-        viewBinding true
         compose true
     }
     compileOptions {
@@ -25,7 +24,7 @@ android {
         jvmTarget = '11'
     }
     composeOptions {
-        kotlinCompilerExtensionVersion Versions.compose_version
+        kotlinCompilerExtensionVersion Versions.compose_compiler_version
     }
     packagingOptions {
         resources {
@@ -47,9 +46,9 @@ dependencies {
             Libs.coroutines_ktx_android,
             Libs.koin_android,
             Libs.glide,
-            Libs.coil
-    implementation Libs.compose_ui
-    implementation Libs.compose_material
+            Libs.coil,
+            Libs.compose_ui,
+            Libs.compose_material
 
     implementation Libs.compose_activity
     debugImplementation Libs.compose_ui_tooling
