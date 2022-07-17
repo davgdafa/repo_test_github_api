@@ -3,7 +3,7 @@
 
     <application>
         <activity
-            android:name=".characters.CharactersComposeActivity"
+            android:name=".characters.CharactersActivity"
             android:exported="true"
             android:label="@string/title_activity_main"
             android:theme="@style/Theme.GotCharactersApp" />

@@ -14,15 +14,18 @@ import com.got.data.remote.GotCharactersServiceImpl
 import com.got.domain.data.GotCharactersRepository
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 val dataModule = module {
-    single<GotCharactersRepository> { GotCharactersRepositoryImpl(get(), get()) }
-    factory<GotCharactersRemoteDataSource> { GotCharactersRemoteDataSourceImpl(get()) }
-    factory<GotCharactersService> { GotCharactersServiceImpl(get()) }
-    factory<GotCharactersLocalDataSource> { GotCharactersLocalDataSourceImpl(get()) }
+    singleOf(::GotCharactersRepositoryImpl) { bind<GotCharactersRepository>() }
+    factoryOf(::GotCharactersRemoteDataSourceImpl) { bind<GotCharactersRemoteDataSource>() }
+    factoryOf(::GotCharactersServiceImpl) { bind<GotCharactersService>() }
+    factoryOf(::GotCharactersLocalDataSourceImpl) { bind<GotCharactersLocalDataSource>()}
     single { Room.databaseBuilder(androidContext(), AppDatabase::class.java, "gotcharacterentity").build().gotCharacterDao() }
     factory<GotCharactersApiInterface> {
         val retrofit: Retrofit = Retrofit.Builder()

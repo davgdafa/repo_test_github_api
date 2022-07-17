@@ -8,5 +8,5 @@ data class GotCharacter(
     val title: String,
     val family: String,
     val imageUrl: String,
-    val isFavorite: Boolean? = false
+    val isFavorite: Boolean = false
 )

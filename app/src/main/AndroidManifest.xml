@@ -11,7 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GotCharactersApp"
         android:name=".GotCharactersApplication">
-        <activity android:name="com.got.presentation.characters.CharactersComposeActivity"
+        <activity android:name="com.got.presentation.characters.CharactersActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -2,6 +2,7 @@ package com.got.presentation.characters
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.got.domain.usecases.GetGotCharacterDetailsUseCase
 import com.got.domain.usecases.GetGotCharactersUseCase
 import com.got.domain.usecases.SearchCharactersUseCase
 import com.got.domain.usecases.SetBookmarkForCharacterUseCase
@@ -19,44 +20,109 @@ class CharactersViewModel(
     private val getGotCharactersUseCase: GetGotCharactersUseCase,
     private val searchCharactersUseCase: SearchCharactersUseCase,
     private val setBookmarkForCharacterUseCase: SetBookmarkForCharacterUseCase,
+    private val getGotCharacterDetailsUseCase: GetGotCharacterDetailsUseCase
 ) : ViewModel() {
-    private val _gotCharactersListUiState = MutableStateFlow(CharactersListUiState())
-    val gotCharactersListUiState: StateFlow<CharactersListUiState> = _gotCharactersListUiState.asStateFlow()
+    private val _gotCharactersUiState = MutableStateFlow(CharactersUiState())
+    val gotCharactersUiState: StateFlow<CharactersUiState> =
+        _gotCharactersUiState.asStateFlow()
 
     private val errorHandler = CoroutineExceptionHandler { _, exception ->
-        _gotCharactersListUiState.update { it.copy(errorMessage = exception.message ?: "There was an unknown error during the process") }
+        _gotCharactersUiState.update {
+            it.copy(
+                errorMessage = exception.message ?: "There was an unknown error during the process",
+                shouldShowLoading = false
+            )
+        }
     }
 
     private fun fetchGotCharacters() = viewModelScope.launch(errorHandler) {
-        _gotCharactersListUiState.update { it.copy(shouldShowLoading = true) }
         delay(2000)
         withContext(Dispatchers.IO) {
+            _gotCharactersUiState.update { it.copy(shouldShowLoading = true) }
             getGotCharactersUseCase().let { listOfCharacters ->
                 if (listOfCharacters.isEmpty()) {
-                    _gotCharactersListUiState.update { it.copy(errorMessage = "There were no characters retrieved") } // TODO should show a text in the layout, not a message
+                    _gotCharactersUiState.update {
+                        it.copy(
+                            errorMessage = "There were no characters retrieved",
+                            shouldShowLoading = false
+                        )
+                    } // TODO should show a text in the layout, not a message
                 } else {
-                    _gotCharactersListUiState.update { it.copy(characters = listOfCharacters) }
+                    _gotCharactersUiState.update {
+                        it.copy(
+                            characters = listOfCharacters,
+                            shouldShowLoading = false
+                        )
+                    }
                 }
             }
         }
     }
 
+    private suspend fun fetchGotCharacterInList(gotCharacterId: Int) =
+        getGotCharactersUseCase().let { listOfCharacters ->
+            if (listOfCharacters.isEmpty()) {
+                _gotCharactersUiState.update {
+                    it.copy(
+                        errorMessage = "There were no characters retrieved",
+                        shouldShowLoading = false
+                    )
+                } // TODO should show a text in the layout, not a message
+            } else {
+                _gotCharactersUiState.update {
+                    it.copy(
+                        characters = listOfCharacters,
+                        shouldShowLoading = false,
+                        showCharacterDetails = listOfCharacters[gotCharacterId]
+                    )
+                }
+            }
+        }
+
     private fun filterGotCharacters(query: String, isBookmarkFilterOn: Boolean = false) {
         viewModelScope.launch(errorHandler) {
-            _gotCharactersListUiState.update { it.copy(shouldShowLoading = true) }
             withContext(Dispatchers.IO) {
+                _gotCharactersUiState.update { it.copy(shouldShowLoading = true) }
                 if (query.isNotBlank()) {
                     searchCharactersUseCase(query)
                 } else {
                     getGotCharactersUseCase()
                 }.let { listOfCharacters ->
                     if (listOfCharacters.isEmpty()) {
-                        _gotCharactersListUiState.update { it.copy(errorMessage = "There were no characters matching the filter criteria") }
+                        _gotCharactersUiState.update {
+                            it.copy(
+                                characters = emptyMap(),
+                                errorMessage = "There were no characters matching the filter criteria",
+                                shouldShowLoading = false
+                            )
+                        }
                     } else {
                         if (isBookmarkFilterOn) {
-                            _gotCharactersListUiState.update { it.copy(characters = listOfCharacters.filter { gotCharacter -> gotCharacter.isFavorite == true }) }
+                            val favoriteCharacters =
+                                listOfCharacters.filter { (_, character) -> character.isFavorite }
+                            if (favoriteCharacters.isEmpty()) {
+                                _gotCharactersUiState.update {
+                                    it.copy(
+                                        characters = emptyMap(),
+                                        errorMessage = "There were no characters matching the filter criteria",
+                                        shouldShowLoading = false
+                                    )
+                                }
+                            } else {
+                                _gotCharactersUiState.update {
+                                    it.copy(
+                                        characters = favoriteCharacters,
+                                        shouldShowLoading = false
+                                    )
+                                }
+                            }
                         } else {
-                            _gotCharactersListUiState.update { it.copy(characters = listOfCharacters) }
+                            _gotCharactersUiState.update {
+                                it.copy(
+                                    characters = listOfCharacters,
+                                    shouldShowLoading = false
+                                )
+                            }
                         }
                     }
                 }
@@ -68,34 +134,72 @@ class CharactersViewModel(
         viewModelScope.launch(errorHandler) {
             withContext(Dispatchers.IO) {
                 setBookmarkForCharacterUseCase(id = gotCharacterId, isFavorite)
+                fetchGotCharacterInList(gotCharacterId)
             }
         }
 
-    fun charactersListAction(action: CharactersListUiAction) {
-        when (action) {
-            is CharactersListUiAction.Filter -> filterGotCharacters(
-                action.query,
-                action.isBookmarkFilterOn
-            )
-            CharactersListUiAction.GetCharactersList -> fetchGotCharacters()
-            is CharactersListUiAction.SetFavoriteGotCharacter -> setFavoriteForGotCharacter(
-                action.gotCharacterId,
-                action.isFavorite
-            )
-            is CharactersListUiAction.CharacterClicked -> _gotCharactersListUiState.update { it.copy(showCharacterDetails = action.characterId) }
-            is CharactersListUiAction.OnBackPressed -> {
-                if (_gotCharactersListUiState.value.showCharacterDetails != null) {
-                    _gotCharactersListUiState.update { it.copy(showCharacterDetails = null) }
-                } else {
-                    _gotCharactersListUiState.update { it.copy(goBackToPreviousActivity = true) }
+    private fun setFavoriteForGotCharacterList(gotCharacterId: Int, isFavorite: Boolean = true) =
+        viewModelScope.launch(errorHandler) {
+            withContext(Dispatchers.IO) {
+                setBookmarkForCharacterUseCase(id = gotCharacterId, isFavorite)
+                getGotCharactersUseCase().let { listOfCharacters ->
+                    _gotCharactersUiState.update {
+                        it.copy(
+                            characters = listOfCharacters, // When filters or query are on, we need to update the items
+                            shouldShowLoading = false
+                        )
+                    }
+                }
+            }
+        }
+
+    fun getGotCharacterDetails(gotCharacterId: Int) = viewModelScope.launch(errorHandler) {
+        withContext(Dispatchers.IO) {
+            getGotCharacterDetailsUseCase(gotCharacterId).let { gotCharacterDetails ->
+                _gotCharactersUiState.update {
+                    it.copy(
+                        characters = it.characters.toMutableMap()
+                            .apply { put(gotCharacterDetails.id, gotCharacterDetails) },
+                        shouldShowLoading = false
+                    )
                 }
             }
         }
     }
 
-    fun characterDetailsAction(action: CharacterDetailsUiAction) {
+    fun actionPerformed(action: CharactersUiAction) {
         when (action) {
-            is CharacterDetailsUiAction.SetFavoriteGotCharacter -> setFavoriteForGotCharacter(
+            is CharactersUiAction.Filter -> filterGotCharacters(
+                action.query,
+                action.isBookmarkFilterOn
+            )
+            CharactersUiAction.GetCharacters -> fetchGotCharacters()
+            is CharactersUiAction.SetFavoriteGotCharacter -> setFavoriteForGotCharacterList(
+                action.gotCharacterId,
+                action.isFavorite
+            )
+            is CharactersUiAction.CharacterClicked -> _gotCharactersUiState.update {
+                it.copy(
+                    showCharacterDetails = it.characters[action.characterId],
+                    shouldShowLoading = false
+                )
+            }
+            is CharactersUiAction.OnBackPressed -> {
+                if (_gotCharactersUiState.value.showCharacterDetails != null) {
+                    _gotCharactersUiState.update { it.copy(showCharacterDetails = null) }
+                } else {
+                    _gotCharactersUiState.update { it.copy(goBackToPreviousActivity = true) }
+                }
+            }
+            is CharactersUiAction.CharacterNotFound -> {
+                _gotCharactersUiState.update {
+                    it.copy(
+                        errorMessage = "There was an error, please try again.",
+                        shouldShowLoading = false
+                    )
+                }
+            }
+            is CharactersUiAction.SetFavoriteGotCharacterForDetails -> setFavoriteForGotCharacter(
                 action.gotCharacterId,
                 action.isFavorite
             )

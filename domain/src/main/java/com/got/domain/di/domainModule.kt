@@ -8,11 +8,13 @@ import com.got.domain.usecases.SearchCharactersUseCase
 import com.got.domain.usecases.SearchCharactersUseCaseImpl
 import com.got.domain.usecases.SetBookmarkForCharacterUseCase
 import com.got.domain.usecases.SetBookmarkForCharacterUseCaseImpl
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 
 val domainModule = module {
-    factory<GetGotCharactersUseCase> { GetGotCharactersUseCaseImpl(get()) }
-    factory<SearchCharactersUseCase> { SearchCharactersUseCaseImpl(get()) }
-    factory<GetGotCharacterDetailsUseCase> { GetGotCharacterDetailsUseCaseImpl(get()) }
-    factory<SetBookmarkForCharacterUseCase> { SetBookmarkForCharacterUseCaseImpl(get()) }
+    factoryOf(::GetGotCharactersUseCaseImpl) { bind<GetGotCharactersUseCase>() }
+    factoryOf(::SearchCharactersUseCaseImpl) { bind<SearchCharactersUseCase>() }
+    factoryOf(::GetGotCharacterDetailsUseCaseImpl) { bind<GetGotCharacterDetailsUseCase>() }
+    factoryOf(::SetBookmarkForCharacterUseCaseImpl) { bind<SetBookmarkForCharacterUseCase>() }
 }
