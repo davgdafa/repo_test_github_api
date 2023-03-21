@@ -3,11 +3,6 @@
 
     <application>
         <activity
-            android:name=".characters.FirstTestComposeActivity"
-            android:exported="false"
-            android:label="@string/title_activity_first_test_compose"
-            android:theme="@style/Theme.GotCharactersApp" />
-        <activity
             android:name=".characters.CharactersComposeActivity"
             android:exported="true"
             android:label="@string/title_activity_main"

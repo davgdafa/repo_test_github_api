@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.got.domain.models.GotCharacter
 import com.got.presentation.R
-import com.got.presentation.character.CharacterDetailsActivity
+//import com.got.presentation.character.CharacterDetailsActivity
 import com.got.presentation.characters.ui.theme.GotCharactersAppTheme
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -188,7 +188,7 @@ class CharactersComposeActivity : ComponentActivity() {
             elevation = 6.dp,
             shape = RoundedCornerShape(8.dp),
             modifier = Modifier.padding(8.dp),
-            onClick = { launchGotCharacterDetailsActivity(character.id) }
+            onClick = { /*launchGotCharacterDetailsActivity(character.id)*/ }
         ) {
             Column {
                 Row {
@@ -250,14 +250,14 @@ class CharactersComposeActivity : ComponentActivity() {
         }
     }
 
-    private fun launchGotCharacterDetailsActivity(gotCharacterId: Int) {
-        startActivity(
-            CharacterDetailsActivity.getIntent(
-                this@CharactersComposeActivity,
-                gotCharacterId
-            )
-        )
-    }
+//    private fun launchGotCharacterDetailsActivity(gotCharacterId: Int) {
+//        startActivity(
+//            CharacterDetailsActivity.getIntent(
+//                this@CharactersComposeActivity,
+//                gotCharacterId
+//            )
+//        )
+//    }
 
     @Preview
     @Composable

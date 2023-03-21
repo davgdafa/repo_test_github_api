@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         minSdk 23
-        targetSdk 32
+        targetSdk 33
         vectorDrawables {
             useSupportLibrary true
         }
@@ -18,14 +18,14 @@ android {
         compose true
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '11'
+        jvmTarget = '17'
     }
     composeOptions {
-        kotlinCompilerExtensionVersion Versions.compose_version
+        kotlinCompilerExtensionVersion Versions.compiler_compose_version
     }
     packagingOptions {
         resources {

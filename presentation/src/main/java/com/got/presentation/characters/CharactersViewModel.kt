@@ -34,13 +34,13 @@ class CharactersViewModel(
 
     private fun fetchGotCharacters() = viewModelScope.launch(errorHandler) {
         _gotCharactersUiState.value = CharactersUiState.Loading
-        delay(2000)
+//        delay(2000)
         withContext(Dispatchers.IO) {
             getGotCharactersUseCase().let { listOfCharacters ->
                 if (listOfCharacters.isEmpty()) {
                     _gotCharactersUiState.update { CharactersUiState.Error("There were no characters retrieved") } // TODO should show a text in the layout, not a message
                 } else {
-                    _gotCharactersUiState.update { CharactersUiState.Success(listOfCharacters) }
+                    _gotCharactersUiState.update { CharactersUiState.Success(listOfCharacters.map { it.value }) }
                 }
             }
         }
@@ -62,11 +62,11 @@ class CharactersViewModel(
                     } else {
                         if (isBookmarkFilterOn) {
                             _gotCharactersUiState.update {
-                                CharactersUiState.Success(listOfCharacters.filter { gotCharacter -> gotCharacter.isFavorite == true })
+                                CharactersUiState.Success(listOfCharacters.map { it.value }.filter { gotCharacter -> gotCharacter.isFavorite == true })
                             }
                         } else {
                             _gotCharactersUiState.update {
-                                CharactersUiState.Success(listOfCharacters)
+                                CharactersUiState.Success(listOfCharacters.map { it.value })
                             }
                         }
                     }
@@ -93,6 +93,10 @@ class CharactersViewModel(
                 action.gotCharacterId,
                 action.isFavorite
             )
+
+            else -> {
+                // TODO
+            }
         }
     }
 
@@ -105,11 +109,11 @@ class CharactersViewModel(
     }
 }
 
-sealed class CharactersUiAction {
-    class Filter(val query: String, val isBookmarkFilterOn: Boolean = false) : CharactersUiAction()
-    object GetCharacters : CharactersUiAction()
-    class SetFavoriteGotCharacter(
-        val gotCharacterId: Int,
-        val isFavorite: Boolean = true
-    ) : CharactersUiAction()
-}
+//sealed class CharactersUiAction {
+//    class Filter(val query: String, val isBookmarkFilterOn: Boolean = false) : CharactersUiAction()
+//    object GetCharacters : CharactersUiAction()
+//    class SetFavoriteGotCharacter(
+//        val gotCharacterId: Int,
+//        val isFavorite: Boolean = true
+//    ) : CharactersUiAction()
+//}

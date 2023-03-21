@@ -4,8 +4,8 @@ apply from: 'buildSystem/Versions.gradle'
 
 buildscript {
     ext {
-        kotlin_version = '1.6.10'
-        android_gradle_plugin_version = '7.2.0'
+        kotlin_version = '1.8.10'
+        android_gradle_plugin_version = '8.1.0-alpha09'
     }
     repositories {
         google()
