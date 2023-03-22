@@ -1,0 +1,9 @@
+ext {
+    Projects = [
+            characters_presentation: project(":feature:characters:presentation"),
+            characters_domain      : project(":feature:characters:domain"),
+            characters_data        : project(":feature:characters:data"),
+            characters_facade      : project(":feature:characters:facade"),
+            core_theme             : project(":core:theme")
+    ]
+}

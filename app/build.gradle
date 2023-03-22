@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "com.got.test"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 33
         versionCode = 1
         versionName = "1.0"
@@ -33,7 +33,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":presentation"), project(":data"), project(":domain"))
+    implementation Projects.characters_facade
     implementation Libs.kotlin_stdlib,
             Libs.androidx_core_kotlin,
             Libs.androidx_appcompat,

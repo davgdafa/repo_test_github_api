@@ -7,6 +7,8 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Got Characters App"
 include ':app'
-include ':domain'
-include ':data'
-include ':presentation'
+include ':feature:characters:domain'
+include ':feature:characters:data'
+include ':feature:characters:presentation'
+include ':feature:characters:facade'
+include ':core:theme'

@@ -1,0 +1,35 @@
+plugins {
+    id("com.android.library")
+    id("kotlin-android")
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.6.10'
+    id 'kotlin-kapt'
+}
+
+java {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+}
+
+android {
+    compileSdk 32
+    namespace 'com.got.data'
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+}
+
+dependencies {
+    implementation Projects.characters_domain
+    implementation Libs.koin_android,
+            Libs.retrofit,
+            Libs.retrofit_gson_converter,
+            Libs.kotlinx_serialization_json,
+            Libs.room_runtime
+    kapt Libs.room_compiler
+}
